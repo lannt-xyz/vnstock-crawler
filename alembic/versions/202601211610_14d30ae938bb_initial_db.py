@@ -127,9 +127,8 @@ def upgrade() -> None:
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('indicator', sa.String(length=100), nullable=True),
     sa.Column('price', sa.Float(), nullable=True),
-    sa.Column('changed_percent', sa.Float(), nullable=True),
+    sa.Column('changed_percent', sa.String(length= 100), nullable=True),
     sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True),
-    sa.Column('updated_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_macro_data_id'), 'macro_data', ['id'], unique=False)
