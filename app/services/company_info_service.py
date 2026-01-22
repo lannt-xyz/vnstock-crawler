@@ -3,13 +3,6 @@ import json
 from sqlalchemy.orm import Session
 
 from app.crawler.cafef import CafefCrawler
-from app.models.company import CompanyProfile
-from app.models.financials import BalanceSheet, CashFlow, IncomeStatement
-from app.models.foreign import ForeignTransaction
-from app.models.insider import InsiderTransaction
-from app.models.officers import Officer
-from app.models.ratios import Ratio
-from app.models.shareholders import Shareholder
 from app.utils.date_util import DateUtils
 from app.utils.decorators import cached_data, try_catch_decorator
 from app.utils.gemini_api import generate
