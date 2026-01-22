@@ -1,12 +1,11 @@
 import glob
-import json
 import os
 from datetime import datetime, timedelta
 
 from app.config import config
 
 
-class CacheService:
+class CachingUtil:
     def __init__(self, cache_dir=None, expiry_days=None):
         self.cache_dir = cache_dir or config.CACHE_DIR
         self.expiry_days = expiry_days or config.CACHE_EXPIRY_DAYS
@@ -28,7 +27,7 @@ class CacheService:
                 file_time = datetime.strptime(date_str, "%Y%m%d")
                 if datetime.now() - file_time < timedelta(days=self.expiry_days):
                     with open(file_path, "r", encoding="utf-8") as f:
-                        return json.load(f)
+                        return f.read()
                 else:
                     # Xóa nếu hết hạn
                     os.remove(file_path)
@@ -40,5 +39,5 @@ class CacheService:
         """Lưu dữ liệu mới vào cache"""
         file_path = self._get_file_path(key, extension)
         with open(file_path, "w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+            f.write(data)
         return file_path

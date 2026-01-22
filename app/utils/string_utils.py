@@ -5,11 +5,16 @@ def clean_markdown_string(text: str) -> str:
     "Loại bỏ các text không cần thiết ví dụ như ``` hoặc ```markdown chỉ giữ lại markdown"
     if not text:
         return ""
-    # Tìm tất cả các đoạn code block
-    code_blocks = re.findall(r"```(.*?)```", text, re.DOTALL)
-    if code_blocks:
-        return "\n".join(code_blocks)
-    return text
+    # Loại bỏ ```markdown hoặc ``` ở đầu và cuối chuỗi
+    text = re.sub(r"^```(markdown)?\s*", "", text)
+    text = re.sub(r"\s*```$", "", text)
+    # Thay thế `\n` bằng newline thực sự
+    text = text.replace("\\n", "\n")
+    # Nếu có chứa qoute ở đầu và cuối, loại bỏ nó
+    if text.startswith('"') and text.endswith('"'):
+        text = text[1:-1].strip()
+
+    return text.strip()
 
 
 def clean_json_string(text: str) -> str:

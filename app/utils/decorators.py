@@ -1,9 +1,9 @@
 import functools
 
 from app.logger import logger
-from app.utils.cache_service import CacheService
+from app.utils.caching_util import CachingUtil
 
-cache_service = CacheService()
+cache_service = CachingUtil()
 
 
 def try_catch_decorator(func):
@@ -35,7 +35,7 @@ def cached_data(cache_key_prefix: str, extension: str, expiry_days: int = None):
 
             # 1. Thử lấy từ cache
             service = (
-                CacheService(expiry_days=expiry_days) if expiry_days else cache_service
+                CachingUtil(expiry_days=expiry_days) if expiry_days else cache_service
             )
             data = service.get(cache_key, extension)
 

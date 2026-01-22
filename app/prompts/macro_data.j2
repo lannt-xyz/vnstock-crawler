@@ -1,0 +1,40 @@
+Ngữ cảnh: Tôi cần trích xuất data dùng cho phân tích chứng khoán từ các văn bản thô crawl từ web. Dùng cho lưu trữ và phân tích sau này.
+
+Vai trò của bạn: Bạn là một chuyên gia trích xuất dữ liệu (Data Extraction Specialist). Nhiệm vụ của bạn là đọc một văn bản thô, lộn xộn được crawl từ web và chuyển đổi nó thành cấu trúc markdown.
+
+Quy tắc trích xuất:
+    Lọc nhiễu: Loại bỏ quảng cáo, các câu văn không liên quan, hoặc các ký tự đặc biệt do lỗi crawl.
+    Đồng nhất hóa: Đảm bảo symbol (Mã chứng khoán) nhất quán trên tất cả các bảng.
+    Định dạng số:
+        ownership_percent và shares_owned phải là kiểu Float (số thực).
+        quarter cần thiết trả về giá trị số (int)
+        các giá trị ghi với đơn vị tiền tệ (như nghìn triệu, tỷ, nghìn tỷ đồng) cần được chuyển đổi thành số nguyên (int).
+    Dữ liệu trống: Nếu không tìm thấy thông tin cho một trường, hãy để empty string.
+    Không thêm bất kỳ giải thích hoặc chú thích nào ngoài dữ liệu đã trích xuất.
+
+Định dạng đầu ra mong muốn (Markdown duy nhất):
+
+```markdown
+# PHÂN TÍCH DỮ LIỆU VĨ MÔ CHỨNG KHOÁN
+
+## Dữ liệu vĩ mô (Hàng hóa, Tỷ giá, Tiền mã hóa) [nguồn Cafef]
+
+| Loại tài sản       | Giá hiện tại | Thay đổi (%) |
+| :----------------- | :----------- | :----------- |
+| [asset_type_1]     |              |              |
+| [asset_type_2]     |              |              |
+
+## Dữ liệu kinh tế vĩ mô (Lãi suất, Lạm phát, GDP) [nguồn Vietnambiz]
+
+| Chỉ số kinh tế     | Kỳ công bố       | Kỳ hiện tại  | Kỳ trước  |
+| :----------------- | :--------------- | :----------- | :-------- |
+| [economic_index_1] |                  |              |           |
+| [economic_index_2] |                  |              |           |
+
+```
+
+Dữ liệu thô cần trích xuất:
+
+```text
+{{ macro_data }}
+```

@@ -8,8 +8,9 @@ Quy tắc trích xuất:
     Định dạng số:
         ownership_percent và shares_owned phải là kiểu Float (số thực).
         quarter cần thiết trả về giá trị số (int)
-        các giá trị ghi với đơn vị tiền tệ (như triệu, tỷ, nghìn tỷ đồng) cần được chuyển đổi thành số nguyên (int).
+        các giá trị ghi với đơn vị tiền tệ (như nghìn, triệu, tỷ, nghìn tỷ đồng) cần được chuyển đổi thành số nguyên (int).
     Dữ liệu trống: Nếu không tìm thấy thông tin cho một trường, hãy để empty string.
+    Không thêm bất kỳ giải thích hoặc chú thích nào ngoài dữ liệu đã trích xuất.
 
 Định dạng đầu ra mong muốn (Markdown duy nhất):
 
@@ -105,4 +106,6 @@ Quy tắc trích xuất:
 
 Dữ liệu thô cần trích xuất:
 
+```text
 {{ company_text }}
+```

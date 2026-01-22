@@ -109,7 +109,7 @@ def extract_data(prompt: str) -> Union[Dict, List]:
         return json.loads(json_str)
 
     except (json.JSONDecodeError, ValueError) as e:
-        logger.error(f"Format error: {e}. Retrying...")
+        logger.error(f"JSON Format error: {e}. Retrying...")
         raise e  # Kích hoạt retry
     except Exception as e:
         logger.error(f"API Error with key: {str(e)[:100]}")

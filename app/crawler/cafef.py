@@ -6,7 +6,7 @@ from playwright.sync_api import Page
 from tenacity import retry, stop_after_attempt, wait_random
 
 from app.logger import logger
-from app.utils.cache_service import CacheService
+from app.utils.caching_util import CachingUtil
 from app.utils.decorators import cached_data, log_execution_time
 from app.utils.playwright_manager import PlaywrightManager
 
@@ -15,7 +15,7 @@ class CafefCrawler:
     BASE_URL = "https://cafef.vn"
 
     def __init__(self):
-        self.cache = CacheService()
+        self.cache = CachingUtil()
 
     @retry(
         stop=stop_after_attempt(3),
@@ -249,6 +249,7 @@ class CafefCrawler:
         stop=stop_after_attempt(3),
         wait=wait_random(min=1, max=3),
     )
+    @log_execution_time
     def get_macro_data(self):
         endpoint_url = f"{self.BASE_URL}/du-lieu.chn"
         page = PlaywrightManager.get_page()
@@ -287,29 +288,3 @@ class CafefCrawler:
             page.context.close()
 
         return macro_data
-
-    # @retry(
-    #     stop=stop_after_attempt(3),
-    #     wait=wait_random(min=1, max=3),
-    # )
-    # def get_ticker_snapshot(self, symbol: str):
-    #     company_url = self._get_company_url(symbol)
-    #     if not company_url:
-    #         raise Exception(f"Company with symbol {symbol} not found on Cafef")
-
-    #     page = PlaywrightManager.get_page()
-    #     content = []
-    #     try:
-    #         page.goto(company_url)
-    #         page_text = page.content()
-    #         soup = BeautifulSoup(page_text, 'html.parser')
-    #         average_price = soup.find('div', id='table-average-price')
-    #         content.append(average_price)
-    #         transaction_information = soup.find('div', id='transaction-information-table-right')
-    #         content.append(transaction_information)
-    #     except Exception as e:
-    #         logger.warning(f"Error while fetching ticker snapshot from Cafef: {e}")
-    #     finally:
-    #         page.context.close()
-
-    #     return " ".join(content)

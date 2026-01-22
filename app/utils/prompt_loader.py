@@ -6,6 +6,7 @@ from jinja2 import Template
 
 class PromptTemplate(Enum):
     COMPANY_PROFILE = "company_profile"
+    MACRO_DATA = "macro_data"
 
 
 class PromptLoader:
