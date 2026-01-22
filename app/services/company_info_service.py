@@ -20,6 +20,13 @@ class CompanyInfoService:
         self.cafef_crawler = CafefCrawler()
         self.db = db
 
+    @cached_data(cache_key_prefix="ticker_snapshot")
+    @try_catch_decorator
+    def fetch_and_save_ticker_snapshot(self, ticker: str):
+        # page = 
+        pass
+
+
     @try_catch_decorator
     def fetch_and_save_company_profiles(self, ticker: str):
         extracted_data = self._fetch_company_profile(ticker)
@@ -33,7 +40,6 @@ class CompanyInfoService:
         self._save_shareholders(ticker, extracted_data)
         self._save_insider_transactions(ticker, extracted_data)
         self._save_foreign_transactions(ticker, extracted_data)
-
 
     @cached_data(cache_key_prefix="company_profile")
     @try_catch_decorator
@@ -50,11 +56,14 @@ Các Models đích:
     Shareholder: symbol, shareholder_name, ownership_percent, shares_owned.
     InsiderTransaction: symbol, date, insider_name, position, transaction_type, shares, price, value
     ForeignTransaction: symbol, date, net_buy_sell, buy_volume, sell_volume
+    StickerSnapshot: symbol, label, data (thông tin bao gồm 
 
 Quy tắc trích xuất:
     Lọc nhiễu: Loại bỏ quảng cáo, các câu văn không liên quan, hoặc các ký tự đặc biệt do lỗi crawl.
     Đồng nhất hóa: Đảm bảo symbol (Mã chứng khoán) nhất quán trên tất cả các bảng.
-    Định dạng số: ownership_percent và shares_owned phải là kiểu Float (số thực).
+    Định dạng số: 
+        ownership_percent và shares_owned phải là kiểu Float (số thực).
+        quarter cần thiết trả về giá trị số (int)
     Trường JSON: Đối với cột data trong Financials và Ratios, hãy nhóm tất cả các chỉ số tài chính tìm thấy vào một object JSON duy nhất.
     Dữ liệu trống: Nếu không tìm thấy thông tin cho một trường, hãy để null.
 
