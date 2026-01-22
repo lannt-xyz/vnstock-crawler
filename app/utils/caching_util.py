@@ -1,4 +1,5 @@
 import glob
+import json
 import os
 from datetime import datetime, timedelta
 
@@ -27,7 +28,10 @@ class CachingUtil:
                 file_time = datetime.strptime(date_str, "%Y%m%d")
                 if datetime.now() - file_time < timedelta(days=self.expiry_days):
                     with open(file_path, "r", encoding="utf-8") as f:
-                        return f.read()
+                        if extension == "json":
+                            return json.load(f)
+                        else:
+                            return f.read()
                 else:
                     # Xóa nếu hết hạn
                     os.remove(file_path)
@@ -39,5 +43,8 @@ class CachingUtil:
         """Lưu dữ liệu mới vào cache"""
         file_path = self._get_file_path(key, extension)
         with open(file_path, "w", encoding="utf-8") as f:
-            f.write(data)
+            if extension == "json":
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            else:
+                f.write(data)
         return file_path
