@@ -24,7 +24,7 @@ class MacroService:
             self.db.add(macro)
         self.db.commit()
 
-    @cached_data(cache_key_prefix="macro_data")
+    @cached_data(cache_key_prefix="macro_data", extension="json")
     @try_catch_decorator
     def _fetch_macro_data(self):
         macro_data = self.cafef_crawler.get_macro_data()

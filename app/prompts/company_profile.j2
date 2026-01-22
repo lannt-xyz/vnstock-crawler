@@ -1,35 +1,107 @@
-Bạn là một chuyên gia trích xuất dữ liệu (Data Extraction Specialist). Nhiệm vụ của bạn là đọc một văn bản thô, lộn xộn được crawl từ web và chuyển đổi nó thành cấu trúc JSON chính xác theo các bảng cơ sở dữ liệu sau.
-Các Models đích:
-    CompanyProfile: symbol, company_name, short_name, industry, sector, country, website, description.
-    Financials (BalanceSheet, IncomeStatement, CashFlow): symbol, period (quarter/year), year, quarter, data (một JSON string chứa các chỉ số tài chính cụ thể).
-    Officer: symbol, name, position.
-    Ratio: symbol, period, year, quarter, data (JSON string các chỉ số tài chính/tỷ lệ).
-    Shareholder: symbol, shareholder_name, ownership_percent, shares_owned.
-    InsiderTransaction: symbol, date, insider_name, position, transaction_type, shares, price, value
-    ForeignTransaction: symbol, date, net_buy_sell, buy_volume, sell_volume
-    StickerSnapshot: symbol, label, data (thông tin bao gồm 
+Ngữ cảnh: Tôi cần trích xuất data dùng cho phân tích mã chứng khoán từ các văn bản thô crawl từ web. Dùng cho lưu trữ và phân tích sau này.
+
+Vai trò của bạn: Bạn là một chuyên gia trích xuất dữ liệu (Data Extraction Specialist). Nhiệm vụ của bạn là đọc một văn bản thô, lộn xộn được crawl từ web và chuyển đổi nó thành cấu trúc Markdown.
 
 Quy tắc trích xuất:
     Lọc nhiễu: Loại bỏ quảng cáo, các câu văn không liên quan, hoặc các ký tự đặc biệt do lỗi crawl.
     Đồng nhất hóa: Đảm bảo symbol (Mã chứng khoán) nhất quán trên tất cả các bảng.
-    Định dạng số: 
+    Định dạng số:
         ownership_percent và shares_owned phải là kiểu Float (số thực).
         quarter cần thiết trả về giá trị số (int)
-    Trường JSON: Đối với cột data trong Financials và Ratios, hãy nhóm tất cả các chỉ số tài chính tìm thấy vào một object JSON duy nhất.
-    Dữ liệu trống: Nếu không tìm thấy thông tin cho một trường, hãy để null.
+        các giá trị ghi với đơn vị tiền tệ (như triệu, tỷ, nghìn tỷ đồng) cần được chuyển đổi thành số nguyên (int).
+    Dữ liệu trống: Nếu không tìm thấy thông tin cho một trường, hãy để empty string.
 
-Định dạng đầu ra mong muốn (JSON duy nhất):
-{{
-  "company_profile": {{ ... }},
-  "balance_sheets": [ {{ ... }} ],
-  "income_statements": [ {{ ... }} ],
-  "cash_flows": [ {{ ... }} ],
-  "officers": [ {{ "name": "...", "position": "..." }} ],
-  "ratios": [ {{ ... }} ],
-  "shareholders": [ {{ ... }} ],
-  "insider_transactions": [ {{ ... }} ],
-  "foreign_transactions": [ {{ ... }} ]
-}}
+Định dạng đầu ra mong muốn (Markdown duy nhất):
+
+```markdown
+# PHÂN TÍCH CHI TIẾT MÃ CHỨNG KHOÁN: [symbol]
+
+## Hồ sơ doanh nghiệp (Company Profile)
+
+- **Tên đầy đủ:** [company_name] ([short_name])
+- **Ngành:** [industry]
+- **Lĩnh vực:** [sector]
+- **Quốc gia:** [country]
+- **Website:** [website]
+- **Mô tả:** [description]
+
+## Ban điều hành & Cổ đông (Officers & Shareholders)
+
+### Ban điều hành chủ chốt
+
+| Tên    | Chức vụ    |
+| :----- | :--------- |
+| [name] | [position] |
+
+### Cơ cấu cổ đông lớn
+
+| Tên cổ đông        | Tỷ lệ sở hữu (%)    | Số lượng cổ phiếu |
+| :----------------- | :------------------ | :---------------- |
+| [shareholder_name] | [ownership_percent] | [shares_owned]    |
+
+## Kết quả kinh doanh & Tài chính (Business & Financials)
+
+### Kết quả kinh doanh
+
+| Hạng mục                          | Quý [Quarter] [Year] | Quý [Quarter-1] [Year] | Quý [Quarter-2] [Year] | Quý [Quarter-3] [Year] |
+| :-------------------------------- | :------------------- | :--------------------- | :--------------------- | :--------------------- |
+| [business_metric_1]               |                      |                        |                        |                        |
+| [business_metric_2]               |                      |                        |                        |                        |
+
+### Tài nguyên - nguồn vốn
+
+| Hạng mục                       | Quý [Quarter] [Year] | Quý [Quarter-1] [Year] | Quý [Quarter-2] [Year] | Quý [Quarter-3] [Year] |
+| :----------------------------- | :------------------- | :--------------------- | :--------------------- | :--------------------- |
+| [resource_metric_1]            |                      |                        |                        |                        |
+| [resource_metric_2]            |                      |                        |                        |                        |
+
+### Chỉ số tài chính & Tỷ lệ (Ratios)
+
+| Chỉ tiêu               | Quý [Quarter] [Year] | Quý [Quarter-1] [Year] | Quý [Quarter-2] [Year] | Quý [Quarter-3] [Year] |
+| :--------------------- | :------------------- | :--------------------- | :--------------------- | :--------------------- |
+| EPS (Nghìn đồng)       |                      |                        |                        |                        |
+| BV (Nghìn đồng)        |                      |                        |                        |                        |
+| PE                     |                      |                        |                        |                        |
+| ROA (%)                |                      |                        |                        |                        |
+| ROE (%)                |                      |                        |                        |                        |
+| ROS (%)                |                      |                        |                        |                        |
+| DRA (%)                |                      |                        |                        |                        |
+| GOS (%)                |                      |                        |                        |                        |
+
+## Giao dịch nội bộ & Khối ngoại (Transactions)
+
+### Giao dịch nội bộ (Insider Transactions)
+
+| Ngày   | Người thực hiện | Chức vụ    | Loại giao dịch     | Số lượng | Giá     | Giá trị |
+| :----- | :-------------- | :--------- | :----------------- | :------- | :------ | :------ |
+| [date] | [insider_name]  | [position] | [transaction_type] | [shares] | [price] | [value] |
+
+### Giao dịch khối ngoại (Foreign Transactions)
+
+| Ngày   | Mua ròng/Bán ròng | Khối lượng Mua | Khối lượng Bán |
+| :----- | :---------------- | :------------- | :------------- |
+| [date] | [net_buy_sell]    | [buy_volume]   | [sell_volume]  |
+
+## Tổng quan thị trường (Sticker Snapshot)
+
+### Tổng quan
+
+| Nhãn    | Dữ liệu chi tiết |
+| :------ | :--------------- |
+| [label] | [data]           |
+
+### Các yếu tố định hướng tương lai (Catalysts)
+
+- **Kế hoạch kinh doanh năm:** [Mục tiêu DT/LN và tỷ lệ hoàn thành hiện tại]
+- **Dự án trọng điểm:** [Tên dự án và tiến độ dự kiến bàn giao/vận hành]
+- **Rủi ro vĩ mô đặc thù:** [Ví dụ: Thuế tự vệ, biến động giá hàng hóa thế giới, tỷ giá...]
+
+### Lịch sự kiện sắp tới
+
+- **[Ngày/Tháng]:** Công bố BCTC Quý ...
+- **[Ngày/Tháng]:** Ngày đăng ký cuối cùng chi trả cổ tức [Tiền mặt/Cổ phiếu]
+- **[Ngày/Tháng]:** Hạn chốt quyền dự ĐHĐCĐ
+```
 
 Dữ liệu thô cần trích xuất:
 

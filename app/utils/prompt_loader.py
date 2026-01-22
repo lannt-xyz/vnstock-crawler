@@ -1,8 +1,9 @@
 import os
+from enum import Enum
+
 from jinja2 import Template
 
 
-from enum import Enum
 class PromptTemplate(Enum):
     COMPANY_PROFILE = "company_profile"
 
@@ -19,7 +20,7 @@ class PromptLoader:
         if template_dir is None:
             # Default to app/prompts relative to the current file
             current_dir = os.path.dirname(os.path.abspath(__file__))
-            template_dir = os.path.join(current_dir, '..', 'prompts')
+            template_dir = os.path.join(current_dir, "..", "prompts")
         self.template_dir = template_dir
 
     def load_template(self, template: PromptTemplate) -> Template:
@@ -38,11 +39,13 @@ class PromptLoader:
         template_file = f"{template.value}.j2"
         template_path = os.path.join(self.template_dir, template_file)
         if not os.path.exists(template_path):
-            raise FileNotFoundError(f"Template file '{template_file}' not found in '{self.template_dir}'")
-        
-        with open(template_path, 'r', encoding='utf-8') as file:
+            raise FileNotFoundError(
+                f"Template file '{template_file}' not found in '{self.template_dir}'"
+            )
+
+        with open(template_path, "r", encoding="utf-8") as file:
             template_content = file.read()
-        
+
         return Template(template_content)
 
     def apply_template(self, template: PromptTemplate, **kwargs) -> str:

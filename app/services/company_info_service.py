@@ -1,20 +1,21 @@
-
 import json
 
+from sqlalchemy.orm import Session
+
 from app.crawler.cafef import CafefCrawler
-from app.models.insider import InsiderTransaction
-from app.utils.decorators import cached_data, try_catch_decorator
-from app.utils.date_util import DateUtils
-from app.utils.gemini_api import extract_data
 from app.models.company import CompanyProfile
-from app.models.financials import BalanceSheet, IncomeStatement, CashFlow
+from app.models.financials import BalanceSheet, CashFlow, IncomeStatement
+from app.models.foreign import ForeignTransaction
+from app.models.insider import InsiderTransaction
 from app.models.officers import Officer
 from app.models.ratios import Ratio
 from app.models.shareholders import Shareholder
-from app.models.foreign import ForeignTransaction
+from app.utils.date_util import DateUtils
+from app.utils.decorators import cached_data, try_catch_decorator
+from app.utils.gemini_api import generate
 from app.utils.prompt_loader import PromptLoader, PromptTemplate
- 
-from sqlalchemy.orm import Session
+from app.utils.string_utils import clean_markdown_string
+
 
 class CompanyInfoService:
     def __init__(self, db: Session):
@@ -22,37 +23,28 @@ class CompanyInfoService:
         self.db = db
         self.prompt_loader = PromptLoader()
 
-    @cached_data(cache_key_prefix="ticker_snapshot")
+    @cached_data(cache_key_prefix="ticker_snapshot", extension="json")
     @try_catch_decorator
     def fetch_and_save_ticker_snapshot(self, ticker: str):
-        # page = 
+        # page =
         pass
-
 
     @try_catch_decorator
     def fetch_and_save_company_profiles(self, ticker: str):
         extracted_data = self._fetch_company_profile(ticker)
 
-        self._save_company_data(ticker, extracted_data)
-        self._save_balance_sheets(ticker, extracted_data)
-        self._save_income_statements(ticker, extracted_data)
-        self._save_cash_flows(ticker, extracted_data)
-        self._save_officers(ticker, extracted_data)
-        self._save_ratios(ticker, extracted_data)
-        self._save_shareholders(ticker, extracted_data)
-        self._save_insider_transactions(ticker, extracted_data)
-        self._save_foreign_transactions(ticker, extracted_data)
-
-    @cached_data(cache_key_prefix="company_profile")
+    @cached_data(cache_key_prefix="company_profile", extension="md")
     @try_catch_decorator
     def _fetch_company_profile(self, ticker: str):
         # If not in cache, fetch from web and process
         company_text = self.cafef_crawler.get_company_profile(ticker.upper())
         prompt = self.prompt_loader.apply_template(
-            PromptTemplate.COMPANY_PROFILE,
-            company_text=company_text
+            PromptTemplate.COMPANY_PROFILE, company_text=company_text
         )
-        return extract_data(prompt)
+
+        generated_response = generate(prompt)
+        markdown = clean_markdown_string(generated_response)
+        return markdown
 
     @try_catch_decorator
     def _save_company_data(self, ticker: str, data: dict):
@@ -61,13 +53,13 @@ class CompanyInfoService:
             return
 
         # first delete existing record if any
-        self.db.query(CompanyProfile).filter(CompanyProfile.symbol == ticker.upper()).delete()
+        self.db.query(CompanyProfile).filter(
+            CompanyProfile.symbol == ticker.upper()
+        ).delete()
         self.db.flush()
 
         # then create new record
-        company_profile = CompanyProfile(
-            **company_profile_dict
-        )
+        company_profile = CompanyProfile(**company_profile_dict)
         ## save to DB or further processing can be done here
         self.db.add(company_profile)
         self.db.commit()
@@ -77,22 +69,28 @@ class CompanyInfoService:
         ballance_sheets = extracted_data.get("balance_sheets", [])
         if not ballance_sheets:
             return
-        
+
         # First delete existing records
-        self.db.query(BalanceSheet).filter(BalanceSheet.symbol == ticker.upper()).delete()
+        self.db.query(BalanceSheet).filter(
+            BalanceSheet.symbol == ticker.upper()
+        ).delete()
         self.db.flush()
 
         # Then add new records
         for sheet in ballance_sheets:
             # Lấy phần data (là một dict) và chuyển thành string JSON
             raw_data = sheet.get("data")
-            json_data_string = json.dumps(raw_data, ensure_ascii=False) if isinstance(raw_data, dict) else raw_data
+            json_data_string = (
+                json.dumps(raw_data, ensure_ascii=False)
+                if isinstance(raw_data, dict)
+                else raw_data
+            )
             new_sheet = BalanceSheet(
                 symbol=ticker.upper(),
                 period=sheet.get("period"),
                 year=sheet.get("year"),
                 quarter=sheet.get("quarter"),
-                data=json_data_string
+                data=json_data_string,
             )
             self.db.add(new_sheet)
         self.db.commit()
@@ -104,13 +102,19 @@ class CompanyInfoService:
             return
 
         # First delete existing records
-        self.db.query(IncomeStatement).filter(IncomeStatement.symbol == ticker.upper()).delete()
+        self.db.query(IncomeStatement).filter(
+            IncomeStatement.symbol == ticker.upper()
+        ).delete()
         self.db.flush()
 
         # Then add new records
         for statement in income_statements:
             raw_data = statement.get("data")
-            json_data_string = json.dumps(raw_data, ensure_ascii=False) if isinstance(raw_data, dict) else raw_data
+            json_data_string = (
+                json.dumps(raw_data, ensure_ascii=False)
+                if isinstance(raw_data, dict)
+                else raw_data
+            )
             income_statement = IncomeStatement(
                 symbol=ticker.upper(),
                 period=statement.get("period"),
@@ -135,7 +139,11 @@ class CompanyInfoService:
         # Then add new records
         for flow in cash_flows:
             raw_data = flow.get("data")
-            json_data_string = json.dumps(raw_data, ensure_ascii=False) if isinstance(raw_data, dict) else raw_data
+            json_data_string = (
+                json.dumps(raw_data, ensure_ascii=False)
+                if isinstance(raw_data, dict)
+                else raw_data
+            )
             cash_flow = CashFlow(
                 symbol=ticker.upper(),
                 period=flow.get("period"),
@@ -181,7 +189,11 @@ class CompanyInfoService:
         # Then add new records
         for rat in ratios:
             raw_data = rat.get("data")
-            json_data_string = json.dumps(raw_data, ensure_ascii=False) if isinstance(raw_data, dict) else raw_data
+            json_data_string = (
+                json.dumps(raw_data, ensure_ascii=False)
+                if isinstance(raw_data, dict)
+                else raw_data
+            )
             ratio = Ratio(
                 symbol=ticker.upper(),
                 period=rat.get("period"),
@@ -222,7 +234,9 @@ class CompanyInfoService:
             return
 
         # First delete existing records
-        self.db.query(InsiderTransaction).filter(InsiderTransaction.symbol == ticker.upper()).delete()
+        self.db.query(InsiderTransaction).filter(
+            InsiderTransaction.symbol == ticker.upper()
+        ).delete()
         self.db.flush()
 
         # Then add new records
@@ -248,7 +262,9 @@ class CompanyInfoService:
             return
 
         # First delete existing records
-        self.db.query(ForeignTransaction).filter(ForeignTransaction.symbol == ticker.upper()).delete()
+        self.db.query(ForeignTransaction).filter(
+            ForeignTransaction.symbol == ticker.upper()
+        ).delete()
         self.db.flush()
 
         # Then add new records
